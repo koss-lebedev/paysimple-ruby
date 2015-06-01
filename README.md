@@ -72,7 +72,7 @@ credit_card = Paysimple::CreditCard.create({
     credit_card_number: '4111111111111111',
     expiration_date: '12/2021',
     billing_zip_code: '80202',
-    issuer: Issuer::VISA,
+    issuer: Paysimple::Issuer::VISA,
     is_default: true 
 })
 
@@ -120,6 +120,67 @@ Paysimple::Payment.refund(payment[:id])
 
 # find payments
 payments = Paysimple::Payment.find({ status: 'authorized', page_size: 10 })
+```
+
+### RecurringPayment
+
+```ruby
+# create recurring payment
+recurring_payment = Paysimple::RecurringPayment.create({
+	account_id: credit_card[:id],
+    payment_amount: 10,
+    start_date: Date.today,
+    execution_frequency_type: Paysimple::ExecutionFrequencyType::DAILY
+})
+
+# get recurring payment
+recurring_payment = Paysimple::RecurringPayment.get(recurring_payment[:id])
+
+# suspend recurring payment
+Paysimple::RecurringPayment.suspend(recurring_payment[:id])
+
+# resume recurring payment
+Paysimple::RecurringPayment.resume(recurring_payment[:id])
+
+# get payments connected with recurring payment
+payments = Paysimple::RecurringPayment.payments(recurring_payment[:id])
+
+# find recurring payments
+recurring_payments = Paysimple::RecurringPayment.find({ page_size: 10 })
+
+# delete recurring payment
+Paysimple::RecurringPayment.delete(payment[:id])
+```
+
+###PaymentPlan
+
+```ruby
+ # create payment plan
+payment_plan = Paysimple::PaymentPlan.create({
+	account_id: credit_card[:id],
+    total_due_amount: 10,
+    total_number_of_payments: 3,
+    start_date: Date.today,
+    execution_frequency_type: Paysimple::ExecutionFrequencyType::DAILY
+})
+
+# get payment plan
+payment_plan = Paysimple::PaymentPlan.get(payment_plan[:id])
+
+# suspend payment plan
+Paysimple::PaymentPlan.suspend(payment_plan[:id])
+
+# resume payment plan
+Paysimple::PaymentPlan.resume(payment_plan[:id])
+
+# get payments connected with payment plan
+payments = Paysimple::PaymentPlan.payments(payment_plan[:id])
+
+# find payment plan
+payment_plans = Paysimple::PaymentPlan.find({ page_size: 10 })
+
+# delete payment plan
+Paysimple::PaymentPlan.delete(payment_plan[:id])
 ```
 
 [PaySimple]:http://www.paysimple.com

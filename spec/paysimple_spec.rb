@@ -31,7 +31,7 @@ describe Paysimple do
                                                    credit_card_number: '4111111111111111',
                                                    expiration_date: '12/2021',
                                                    billing_zip_code: '80202',
-                                                   issuer: Issuer::VISA,
+                                                   issuer: Paysimple::Issuer::VISA,
                                                    is_default: true
                                                })
     expect(credit_card[:id]).not_to be_nil
@@ -54,7 +54,7 @@ describe Paysimple do
                                                    customer_id: customer[:id],
                                                    credit_card_number: '4111111111111111',
                                                    expiration_date: '12/2021',
-                                                   issuer: Issuer::VISA,
+                                                   issuer: Paysimple::Issuer::VISA,
                                                    is_default: true
                                                })
     expect { Paysimple::CreditCard.delete(credit_card[:id]) }.to_not raise_error
@@ -72,6 +72,53 @@ describe Paysimple do
                                 })
     expect(ach[:id]).not_to be_nil
     expect { Paysimple::ACH.delete(ach[:id]) }.to_not raise_error
+  end
+
+  it 'should work with recurring payment' do
+    customer = Paysimple::Customer.create({ first_name: 'John', last_name: 'Doe' })
+    credit_card = Paysimple::CreditCard.create({
+                                                   customer_id: customer[:id],
+                                                   credit_card_number: '4111111111111111',
+                                                   expiration_date: '12/2021',
+                                                   billing_zip_code: '80202',
+                                                   issuer: Paysimple::Issuer::VISA,
+                                                   is_default: true
+                                               })
+    payment = Paysimple::RecurringPayment.create({
+                                           account_id: credit_card[:id],
+                                           payment_amount: 10,
+                                           start_date: Date.today,
+                                           execution_frequency_type: Paysimple::ExecutionFrequencyType::DAILY
+                                       })
+    expect(payment[:id]).not_to be_nil
+    expect { Paysimple::RecurringPayment.suspend(payment[:id]) }.to_not raise_error
+    expect { Paysimple::RecurringPayment.resume(payment[:id]) }.to_not raise_error
+    payments = Paysimple::RecurringPayment.payments(payment[:id])
+    expect(payments).to be_instance_of(Array)
+  end
+
+  it 'should work with payment plans' do
+    customer = Paysimple::Customer.create({ first_name: 'John', last_name: 'Doe' })
+    credit_card = Paysimple::CreditCard.create({
+                                                   customer_id: customer[:id],
+                                                   credit_card_number: '4111111111111111',
+                                                   expiration_date: '12/2021',
+                                                   billing_zip_code: '80202',
+                                                   issuer: Paysimple::Issuer::VISA,
+                                                   is_default: true
+                                               })
+    payment_plan = Paysimple::PaymentPlan.create({
+                                                     account_id: credit_card[:id],
+                                                     total_due_amount: 10,
+                                                     total_number_of_payments: 3,
+                                                     start_date: Date.today,
+                                                     execution_frequency_type: Paysimple::ExecutionFrequencyType::DAILY
+                                                 })
+    expect(payment_plan[:id]).not_to be_nil
+    expect { Paysimple::PaymentPlan.suspend(payment_plan[:id]) }.to_not raise_error
+    expect { Paysimple::PaymentPlan.resume(payment_plan[:id]) }.to_not raise_error
+    payments = Paysimple::PaymentPlan.payments(payment_plan[:id])
+    expect(payments).to be_instance_of(Array)
   end
 
   it 'should raise if API key is not provided' do
