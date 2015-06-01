@@ -7,4 +7,6 @@
 /pkg/
 /spec/reports/
 /tmp/
-/.idea/
+.idea/
+.env
+*.gem

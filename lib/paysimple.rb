@@ -11,11 +11,22 @@ require 'paysimple/endpoint'
 require 'paysimple/util'
 
 # Resources
+require 'paysimple/resources/issuer'
+require 'paysimple/resources/payment_type'
+require 'paysimple/resources/payment_sub_type'
 require 'paysimple/resources/customer'
+require 'paysimple/resources/credit_card'
+require 'paysimple/resources/ach'
+require 'paysimple/resources/payment'
+require 'paysimple/resources/recurring_payment'
+require 'paysimple/resources/payment_plan'
 
 # Errors
 require 'paysimple/errors/paysimple_error'
+require 'paysimple/errors/api_connection_error'
 require 'paysimple/errors/api_error'
+require 'paysimple/errors/invalid_request_error'
+require 'paysimple/errors/authentication_error'
 
 module Paysimple
 
@@ -27,13 +38,18 @@ module Paysimple
 
   def self.request(method, url, params={})
 
+    raise AuthenticationError.new('API key is not provided.') unless @api_key
+    raise AuthenticationError.new('API user is not provided.') unless @api_user
+
     url = api_url(url)
     case method
-      when :get, :head, :delete
+      when :get, :head
         url += "#{URI.parse(url).query ? '&' : '?'}#{uri_encode(params)}" if params && params.any?
         payload = nil
+      when :delete
+        payload = nil
       else
-        payload = params.to_json
+        payload = Util.camelize_and_symbolize_keys(params).to_json
     end
 
     request_opts = { headers: request_headers, method: method, open_timeout: 30,
@@ -41,7 +57,16 @@ module Paysimple
 
     begin
       response = execute_request(request_opts)
-      # TODO: handle network errors
+    rescue SocketError => e
+      handle_restclient_error(e)
+    rescue RestClient::ExceptionWithResponse => e
+      if rcode = e.http_code and rbody = e.http_body
+        handle_api_error(rcode, rbody)
+      else
+        handle_restclient_error(e)
+      end
+    rescue RestClient::Exception, Errno::ECONNREFUSED => e
+      handle_restclient_error(e)
     end
 
     parse(response)
@@ -68,14 +93,14 @@ module Paysimple
   end
 
   def self.parse(response)
-    begin
+    if response.body.empty?
+      {}
+    else
       response = JSON.parse(response.body)
-    rescue JSON::ParserError
-      raise general_api_error(response.code, response.body)
+      Util.underscore_and_symbolize_names(response)[:response]
     end
-
-    # TODO: inspect response for errors in metas
-    Util.symbolize_names(response)[:response]
+  rescue JSON::ParserError
+    raise general_api_error(response.code, response.body)
   end
 
   def self.general_api_error(rcode, rbody)
@@ -90,6 +115,43 @@ module Paysimple
     signature = Base64.encode64(hash)
 
     "PSSERVER accessid=#{@api_user}; timestamp=#{utc_timestamp}; signature=#{signature}"
+  end
+
+  def self.handle_api_error(rcode, rbody)
+    begin
+      error_obj = rbody.empty? ? {} : Util.underscore_and_symbolize_names(JSON.parse(rbody))
+    rescue JSON::ParserError
+      raise general_api_error(rcode, rbody)
+    end
+
+    case rcode
+      when 400, 404
+        error = error_obj[:meta][:errors][:error_messages].collect { |e| e[:message]}
+        raise InvalidRequestError.new(error, nil, rcode, rbody, error_obj)
+      when 401
+        raise  AuthenticationError.new(error, rcode, rbody, error_obj)
+      else
+        raise APIError.new(error, rcode, rbody, error_obj)
+    end
+  end
+
+  def self.handle_restclient_error(e, api_base_url=nil)
+    connection_message = 'Please check your internet connection and try again.'
+
+    case e
+      when RestClient::RequestTimeout
+        message = "Could not connect to Paysimple (#{@api_endpoint}). #{connection_message}"
+      when RestClient::ServerBrokeConnection
+        message = "The connection to the server (#{@api_endpoint}) broke before the " \
+        "request completed. #{connection_message}"
+      when SocketError
+        message = 'Unexpected error communicating when trying to connect to Paysimple. ' \
+        'You may be seeing this message because your DNS is not working. '
+      else
+        message = 'Unexpected error communicating with Paysimple. '
+    end
+
+    raise APIConnectionError.new(message + "\n\n(Network error: #{e.message})")
   end
 
 end

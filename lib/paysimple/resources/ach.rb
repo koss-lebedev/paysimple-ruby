@@ -1,5 +1,5 @@
 module Paysimple
-  class CreditCard
+  class ACH
 
     def self.create(opts)
       Paysimple.request(:post, url, opts)
@@ -16,7 +16,7 @@ module Paysimple
   protected
 
     def self.url
-      '/account/creditcard'
+      '/account/ach'
     end
 
   end
