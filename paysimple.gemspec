@@ -3,7 +3,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'paysimple/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'paysimple'
+  spec.name          = 'paysimple-ruby'
   spec.version       = Paysimple::VERSION
   spec.authors       = ['Konstantin Lebedev']
   spec.email         = ['koss.lebedev@gmail.com']
