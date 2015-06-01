@@ -1,14 +1,6 @@
 module Paysimple
   module Util
 
-    # class ::Hash
-    #   def method_missing(name)
-    #     return self[name] if key? name
-    #     self.each { |k,v| return v if k.to_s.to_sym == name }
-    #     super.method_missing name
-    #   end
-    # end
-
     def self.underscore(str)
       str.gsub(/([A-Z]+)([A-Z][a-z])/,'\1_\2').
           gsub(/([a-z\d])([A-Z])/,'\1_\2').

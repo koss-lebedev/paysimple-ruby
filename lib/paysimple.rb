@@ -10,10 +10,15 @@ require 'paysimple/version'
 require 'paysimple/endpoint'
 require 'paysimple/util'
 
+# Enumerations
+require 'paysimple/enumerations/issuer'
+require 'paysimple/enumerations/payment_type'
+require 'paysimple/enumerations/payment_sub_type'
+require 'paysimple/enumerations/schedule_status'
+require 'paysimple/enumerations/payment_status'
+require 'paysimple/enumerations/execution_frequency_type'
+
 # Resources
-require 'paysimple/resources/issuer'
-require 'paysimple/resources/payment_type'
-require 'paysimple/resources/payment_sub_type'
 require 'paysimple/resources/customer'
 require 'paysimple/resources/credit_card'
 require 'paysimple/resources/ach'
@@ -126,8 +131,8 @@ module Paysimple
 
     case rcode
       when 400, 404
-        error = error_obj[:meta][:errors][:error_messages].collect { |e| e[:message]}
-        raise InvalidRequestError.new(error, nil, rcode, rbody, error_obj)
+        errors = error_obj[:meta][:errors][:error_messages].collect { |e| e[:message]}
+        raise InvalidRequestError.new(errors, rcode, rbody, error_obj)
       when 401
         raise  AuthenticationError.new(error, rcode, rbody, error_obj)
       else
