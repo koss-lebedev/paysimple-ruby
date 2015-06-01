@@ -60,6 +60,20 @@ describe Paysimple do
     expect { Paysimple::CreditCard.delete(credit_card[:id]) }.to_not raise_error
   end
 
+  it 'should create and delete ACH account' do
+    customer = Paysimple::Customer.create({ first_name: 'John', last_name: 'Doe' })
+    ach = Paysimple::ACH.create({
+                                    customer_id: customer[:id],
+                                    account_number: '751111111',
+                                    routing_number: '131111114',
+                                    bank_name: 'PaySimple Bank',
+                                    is_checking_account: true,
+                                    is_default: true
+                                })
+    expect(ach[:id]).not_to be_nil
+    expect { Paysimple::ACH.delete(ach[:id]) }.to_not raise_error
+  end
+
   it 'should raise if API key is not provided' do
     Paysimple.api_key = ''
     expect { Paysimple::Customer.create({first_name: 'John'}) }.to raise_error(Paysimple::AuthenticationError)
