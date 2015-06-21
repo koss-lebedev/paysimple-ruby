@@ -87,8 +87,10 @@ describe Paysimple do
     payment = Paysimple::RecurringPayment.create({
                                            account_id: credit_card[:id],
                                            payment_amount: 10,
-                                           start_date: Date.today,
-                                           execution_frequency_type: Paysimple::ExecutionFrequencyType::DAILY
+                                           start_date: Date.today + 1,
+                                           first_payment_date: Date.today,
+                                           first_payment_amount: 100,
+                                           execution_frequency_type: Paysimple::ExecutionFrequencyType::FIRST_OF_MONTH
                                        })
     expect(payment[:id]).not_to be_nil
     expect { Paysimple::RecurringPayment.suspend(payment[:id]) }.to_not raise_error

@@ -116,7 +116,7 @@ module Paysimple
   def self.authorization_header
     utc_timestamp = Time.now.getutc.iso8601.encode(Encoding::UTF_8)
     secret_key = @api_key.encode(Encoding::UTF_8)
-    hash = OpenSSL::HMAC.digest(OpenSSL::Digest::Digest.new('sha256'), secret_key, utc_timestamp)
+    hash = OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), secret_key, utc_timestamp)
     signature = Base64.encode64(hash)
 
     "PSSERVER accessid=#{@api_user}; timestamp=#{utc_timestamp}; signature=#{signature}"
@@ -129,14 +129,16 @@ module Paysimple
       raise general_api_error(rcode, rbody)
     end
 
+    error_code = error_obj[:meta][:errors][:error_code]
+
     case rcode
       when 400, 404
         errors = error_obj[:meta][:errors][:error_messages].collect { |e| e[:message]}
         raise InvalidRequestError.new(errors, rcode, rbody, error_obj)
       when 401
-        raise  AuthenticationError.new(error, rcode, rbody, error_obj)
+        raise  AuthenticationError.new(error_code, rcode, rbody, error_obj)
       else
-        raise APIError.new(error, rcode, rbody, error_obj)
+        raise APIError.new(error_code, rcode, rbody, error_obj)
     end
   end
 
