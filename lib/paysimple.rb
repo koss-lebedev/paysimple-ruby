@@ -9,6 +9,7 @@ require 'json'
 require 'paysimple/version'
 require 'paysimple/endpoint'
 require 'paysimple/util'
+require 'paysimple/config'
 
 # Enumerations
 require 'paysimple/enumerations/issuer'
@@ -36,6 +37,7 @@ require 'paysimple/errors/authentication_error'
 module Paysimple
 
   @api_endpoint = Endpoint::PRODUCTION
+  @ssl_version = Config::DEFAULT_SSL_VERSION
 
   class << self
     attr_accessor :api_key, :api_user, :api_endpoint, :ssl_version

@@ -6,7 +6,6 @@ describe Paysimple do
     Paysimple.api_endpoint = Paysimple::Endpoint::SANDBOX
     Paysimple.api_user = ENV['API_USER']
     Paysimple.api_key = ENV['API_KEY']
-    Paysimple.ssl_version = "TLSv1_2"
   end
 
   it 'should create customer' do
