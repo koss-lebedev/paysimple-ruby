@@ -9,6 +9,7 @@ require 'json'
 require 'paysimple/version'
 require 'paysimple/endpoint'
 require 'paysimple/util'
+require 'paysimple/config'
 
 # Enumerations
 require 'paysimple/enumerations/issuer'
@@ -36,9 +37,10 @@ require 'paysimple/errors/authentication_error'
 module Paysimple
 
   @api_endpoint = Endpoint::PRODUCTION
+  @ssl_version = Config::DEFAULT_SSL_VERSION
 
   class << self
-    attr_accessor :api_key, :api_user, :api_endpoint
+    attr_accessor :api_key, :api_user, :api_endpoint, :ssl_version
   end
 
   def self.request(method, url, params={})
@@ -58,7 +60,7 @@ module Paysimple
     end
 
     request_opts = { headers: request_headers, method: method, open_timeout: 30,
-                     payload: payload, url: url, timeout: 80 }
+                     payload: payload, url: url, timeout: 80, ssl_version: ssl_version }
 
     begin
       response = execute_request(request_opts)
@@ -129,16 +131,16 @@ module Paysimple
       raise general_api_error(rcode, rbody)
     end
 
-    error_code = error_obj[:meta][:errors][:error_code]
-
     case rcode
       when 400, 404
         errors = error_obj[:meta][:errors][:error_messages].collect { |e| e[:message]}
         raise InvalidRequestError.new(errors, rcode, rbody, error_obj)
       when 401
-        raise  AuthenticationError.new(error_code, rcode, rbody, error_obj)
+        error = "Error getting an API token. Check your authentication credentials and resubmit."
+        raise AuthenticationError.new(error, rcode, rbody, error_obj)
       else
-        raise APIError.new(error_code, rcode, rbody, error_obj)
+        error = "There was an error processing the request."
+        raise APIError.new(error, rcode, rbody, error_obj)
     end
   end
 

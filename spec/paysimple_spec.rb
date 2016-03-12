@@ -43,7 +43,6 @@ describe Paysimple do
 
   it 'should return payments' do
     payments = Paysimple::Payment.find({ page: 1, page_size: 2, lite: false })
-    puts payments.inspect
     expect(payments).to be_instance_of(Array)
     expect(payments.size).to be <= 2
   end
