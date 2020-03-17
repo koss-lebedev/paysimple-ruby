@@ -32,7 +32,7 @@ By default the library will try to connect to the production endpoint. You can c
 Paysimple.api_endpoint = Paysimple::Endpoint::PRODUCTION
 ```
 
-or 
+or
 
 ```ruby
 Paysimple.api_endpoint = Paysimple::Endpoint::SANDBOX
@@ -40,7 +40,7 @@ Paysimple.api_endpoint = Paysimple::Endpoint::SANDBOX
 
 ## Usage examples
 
-###Customer
+### Customer
 
 ```ruby
 # create new customer
@@ -67,13 +67,13 @@ Paysimple::Customer.delete(customer[:id])
 
 ```ruby
 # create credit card
-credit_card = Paysimple::CreditCard.create({  
+credit_card = Paysimple::CreditCard.create({
 	customer_id: customer[:id],
     credit_card_number: '4111111111111111',
     expiration_date: '12/2021',
     billing_zip_code: '80202',
     issuer: Paysimple::Issuer::VISA,
-    is_default: true 
+    is_default: true
 })
 
 # update credit card
@@ -83,7 +83,7 @@ updated_credit_card = Paysimple::CreditCard.update({ id: credit_card[:id], ... }
 Paysimple::CreditCard.delete(credit_card[:id])
 ```
 
-###ACH
+### ACH
 
 ```ruby
 # create ACH
@@ -103,7 +103,7 @@ updated_ach = Paysimple::ACH.update({ id: ach[:id], ... })
 Paysimple::ACH.delete(ach[:id])
 ```
 
-###Payment
+### Payment
 
 ```ruby
 # create payment
@@ -152,7 +152,7 @@ recurring_payments = Paysimple::RecurringPayment.find({ page_size: 10 })
 Paysimple::RecurringPayment.delete(payment[:id])
 ```
 
-###PaymentPlan
+### PaymentPlan
 
 ```ruby
  # create payment plan
